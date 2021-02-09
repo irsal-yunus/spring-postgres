@@ -87,6 +87,48 @@ test:
     after_script:
         - echo "Test development complete..."
 
+archive:
+    stage: archive
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1    
+    before_script:
+        - echo "Skipping..."   
+        - ls -ltr $DIR_RELEASE          
+      
+    script:
+        - | 
+          if [ -d $DIR_RELEASE ]; then 
+            echo "Directory Is exists."; 
+          else 
+            mkdir -p $DIR_RELEASE/agregate_service;
+            echo "Create Directory Success...";
+          fi
+        - | 
+          if [ -f "*.zip" ]; then 
+            echo "This package already downloaded..."; 
+            unzip *.zip -d $DIR_RELEASE/agregate_service/; 
+          else 
+            echo "Preparing Archive package...";
+            cd $CI_BUILDS_DIR && pwd               
+            curl -L --progress-bar --header "PRIVATE-TOKEN: 9SRJZxic2k7ex57649sp" "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=build" -o $DIR_RELEASE/agregate_service/artifacts.zip 2>&1;
+            chmod -Rv 775 $DIR_RELEASE/agregate_service/artifacts.zip 
+            echo "Archiving Package success...!";
+          fi   
+    only:
+        - master         
+
+    retry:
+      max: 2
+      when: always         
+    allow_failure: true
+    when: delayed
+    start_in: 1 minutes
+    after_script:
+        - echo "Archive development complete..."
+
 
     
 
