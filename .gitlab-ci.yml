@@ -100,7 +100,7 @@ archive:
       
     script:
         - | 
-          if [ -d $DIR_RELEASE ]; then 
+          if [ -d $DIR_RELEASE/agregate_service ]; then 
             echo "Directory Is exists."; 
           else 
             mkdir -p $DIR_RELEASE/agregate_service;
