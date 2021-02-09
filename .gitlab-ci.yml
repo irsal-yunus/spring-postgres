@@ -29,7 +29,8 @@ build:
       public: true
       when: on_success     
       paths:
-        - build/libs/*.jar
+        - build/libs/*.jar 
+        - build/libs/*.properties
     before_script:   
         - pwd && cd $CI_BUILDS_DIR        
 
