@@ -32,7 +32,9 @@ build:
         - build/libs/*.jar 
         - build/libs/*.properties
     before_script:   
-        - pwd && cd $CI_BUILDS_DIR        
+        - pwd && cd $CI_BUILDS_DIR  
+        - ansible-playbook -i hosts playbook/playbook.yml --syntax-check
+        - ansible-playbook -i hosts playbook/playbook.yml      
 
     rules:
       - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH'
