@@ -61,6 +61,32 @@ build:
     after_script:                 
         - echo "Build development complete"    
 
+test:
+    stage: test
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1
+    script:
+        - echo "Skipping..." #./gradlew check       
+
+    only:
+        - master        
+
+    allow_failure: true
+
+    retry:
+      max: 2
+      when: 
+       - runner_system_failure
+       - stuck_or_timeout_failure
+    allow_failure: true
+    when: delayed
+    start_in: 1 minutes
+    after_script:
+        - echo "Test development complete..."
+
 
     
 
