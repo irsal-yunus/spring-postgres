@@ -15,6 +15,17 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
+def contentSpec = copySpec {
+  from("src/main/resources") {
+    include "*.properties"
+  }
+}
+
+task copy(type: Copy) {
+  into "$buildDir/libs"
+  with contentSpec
+}
+
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
