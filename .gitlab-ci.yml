@@ -49,6 +49,7 @@ build:
     script: 
         - pwd && cd $CI_BUILDS_DIR   
         # - "curl -X POST -F token=94d3a5894201ff60c047c296cad592 -F ref=master https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/trigger/pipeline"  
+        - pwd && chmod +x .gradlew
         - ./gradlew clean build # build package java
         - ./gradlew copy # running copy task configuration    
 
