@@ -183,23 +183,29 @@ deploy:
           echo "Archiving Package success...!";
           fi 
         - unzip artifacts.zip && ls -ltr libs  
-        - echo "kill service java"  
-        - kill -9 java  && ps aux | grep java
+        - echo "Checking Status Service..."  
+        - |
+          if [ $(jps -l | grep "$SERVICE_NAME" | wc -l) -eq "0" ]; then
+            echo "service not running";
+          else
+            echo "service is running";            
+          fi
+        - echo "killing Service "$SERVICE_NAME" "
+        - kill $(ps aux | grep "$SERVICE_NAME" | grep -v 'grep' | awk '{print $2}')
         - echo "kill service success"
         - echo "Preparing remove packages java..."
         - rm -rf app 
         - ls -ltr app 
         - echo "Remove Package Success..."
         - mv build/libs /home/appuser01/app 
-        - echo "Clean Up Package..."
-        - rm -rf *
+        - pwd        
         - echo "Make Sure Privileges user.."
         - ls -ltr /home/appuser01/app
         - chown -R appuser01:appuser01 /home/appuser01/app && chmod -R 755 /home/appuser01/app
         - echo "Preparing start service java..."
         - su appuser01 && cd /home/appuser01/app 
         - java -jar -Dspring.location.config=application.properties springboot-postgresql-0.0.1-SNAPSHOT.jar
-        - ps aux | grep java
+        - ps aux | grep $SERVICE_NAME
         # && systemctl status agregate.service
         # - systemctl restart agregate.service && systemctl status agregate.service
         - echo "deploy Success.."
