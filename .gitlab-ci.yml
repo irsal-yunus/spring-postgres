@@ -149,25 +149,25 @@ deploy:
           fi
         - echo "create Dir App java"
         - |
-          if [ -d $DIR_APP ]; then 
+          if [ -d /app ]; then 
             echo "Directory Is exists."; 
           else 
-            mkdir -p $DIR_APP;
+            mkdir -p /app;
             echo "Create Directory Success...";
           fi
-        - | 
-          if [ -e "app_`date +%y_%m_%d`.tar.gz" ]; then 
-            echo "Yes, file exists"; 
-          else 
-            echo "Compres Proses..."; 
-            if [[ ! -d "app" ]]
-            then
-                echo "Directory Not Found on your filesystem."
-            else
-                tar -cf /backup/agregate_service/app`date +%y_%m_%d`.tar.gz app 
-                echo "compres success...";
-            fi             
-          fi                
+      #  - | 
+      #    if [ -e "app_`date +%y_%m_%d`.tar.gz" ]; then 
+      #      echo "Yes, file exists"; 
+      #    else 
+      #      echo "Compres Proses..."; 
+      #      if [[ ! -d "app" ]]
+      #      then
+      #          echo "Directory Not Found on your filesystem."
+      #      else
+         #       tar -cf /backup/agregate_service/app`date +%y_%m_%d`.tar.gz app 
+        #        echo "compres success...";
+       #     fi             
+       #   fi                
  
     script: 
         - cd $DIR_RELEASE/agregate_service && pwd
@@ -181,18 +181,18 @@ deploy:
             cd $CI_BUILDS_DIR && pwd;
             zip -r artifacts.zip build/libs && mv artifacts.zip $DIR_RELEASE/agregate_service/;
             unzip -B $DIR_RELEASE/agregate_service/artifacts.zip;
-            echo "Archiving Package success...!";
-          fi         
+          echo "Archiving Package success...!";
+          fi       
         - echo "Checking Status Service..."  
         - |
           if [ $(jps -l | grep $SERVICE_NAME | wc -l) -eq "0" ]; then
             echo "service not running";
           else
-            echo "service is running";            
-          fi
-        - echo "killing Service $SERVICE_NAME "
-        - kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}')
-        - echo "kill service success"
+            echo "service is running";  
+            echo "killing Service $SERVICE_NAME";
+            kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}');
+            echo "kill service success";
+          fi        
         - echo "Preparing remove packages java..."
         - rm -rf app 
         - ls -ltr app 
@@ -204,7 +204,8 @@ deploy:
         - chown -R appuser01:appuser01 /home/appuser01/app && chmod -R 755 /home/appuser01/app
         - echo "Preparing start service java..."
         - su appuser01 && cd /home/appuser01/app 
-        - java -jar -Dspring.location.config=application.properties springboot-postgresql-0.0.1-SNAPSHOT.jar
+        - ln -sv /home/appuser01/app/springboot-postgresql-0.0.1-SNAPSHOT.jar /home/appuser01/app/springboot-postgresql.jar
+        - java -jar -Dspring.location.config=application.properties springboot-postgresql.jar
         - ps aux | grep $SERVICE_NAME
         # && systemctl status agregate.service
         # - systemctl restart agregate.service && systemctl status agregate.service
