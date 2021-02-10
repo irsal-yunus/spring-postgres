@@ -18,6 +18,8 @@ apply plugin: 'io.spring.dependency-management'
 def contentSpec = copySpec {
   from("src/main/resources") {
     include "*.properties"
+	include "*.sh"
+	include "*.service"
   }
 }
 
@@ -25,6 +27,8 @@ task copy(type: Copy) {
   into "$buildDir/libs"
   with contentSpec
 }
+
+
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
