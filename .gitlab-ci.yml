@@ -22,21 +22,7 @@ deploy:
             mkdir -p /app;
             echo "Create Directory Success...";
           fi
-        # - cd /
-        # - | 
-        #   if [ -e "app_`date +%y_%m_%d`.tar.gz" ]; then 
-        #     echo "Yes, file exists"; 
-        #   else 
-        #     echo "Compres Proses..."; 
-        #     if [[ ! -d "app" ]]
-        #     then
-        #         echo "Directory Not Found on your filesystem."
-        #     else
-        #         tar -cf /backup/agregate_service/app`date +%y_%m_%d`.tar.gz app 
-        #         echo "compres success...";
-        #     fi             
-        #   fi                
- 
+        
     script: 
         - cd $DIR_RELEASE/agregate_service && pwd
         - echo "Extract Package...."
@@ -61,10 +47,7 @@ deploy:
             kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}');
             echo "kill service success";
           fi        
-        - echo "Preparing remove packages java..."
-        # - rm -rf app 
-        # - ls -ltr app 
-        # - echo "Remove Package Success..."
+        - echo "Preparing remove packages java..."        
         - mv $DIR_RELEASE/agregate_service/build/libs/* /app 
         - pwd        
         - echo "Make Sure Privileges user.."
@@ -72,11 +55,16 @@ deploy:
         - chown -R appuser01:appuser01 /app && chmod -R 755 /app
         - echo "Preparing start service java..."
         - su appuser01 && cd /app 
-        - ln -sv /app/springboot-postgresql-0.0.1-SNAPSHOT.jar /app/springboot-postgresql.jar
-        - java -jar -Dspring.location.config=application.properties springboot-postgresql.jar
-        - ps aux | grep $SERVICE_NAME
-        # && systemctl status agregate.service
-        # - systemctl restart agregate.service && systemctl status agregate.service
+        - |
+          if [ -f "*.jar" ]; then
+            echo "File jar Found in here...";
+            ln -sv /app/builds-0.0.1-SNAPSHOT.jar  /app/builds.jar;
+          else
+            echo "FIle is Not Found in here...!";           
+          fi
+        
+        - java -jar -Dspring.location.config=application.properties /app/builds.jar
+        - ps aux | grep $SERVICE_NAME        
         - echo "deploy Success.."
         - echo "clean up package after deploy..."
         - sudo ls -ltr $DIR_RELEASE/agregate_service/
