@@ -56,7 +56,7 @@ deploy:
         - echo "Preparing start service java..."
         - su appuser01 && cd /app 
         - |
-          if [ -f "/app/*.jar" ]; then
+          if [ -f "builds-0.0.1-SNAPSHOT.jar" ]; then
             echo "File jar Found in here...";
             ln -sv /app/builds-0.0.1-SNAPSHOT.jar  /app/builds.jar;
           else
