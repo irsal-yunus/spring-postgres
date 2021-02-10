@@ -63,7 +63,7 @@ deploy:
             echo "FIle is Not Found in here...!";           
           fi
         
-        - java -jar -Dspring.location.config=application.properties /app/builds.jar
+        - java -jar -Dspring.location.config=application.properties /app/builds.jar > /dev/null &
         - ps aux | grep $SERVICE_NAME        
         - echo "deploy Success.."
         - echo "clean up package after deploy..."
