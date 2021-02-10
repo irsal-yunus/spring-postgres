@@ -15,17 +15,38 @@ apply plugin: 'eclipse'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
-def contentSpec = copySpec {
-  from("src/main/resources") {
-    include "*.properties"
-	include "*.sh"
-	include "*.service"
-  }
+def jarBaseName= 'spring-postgres'
+def jarVersion = '0.0.1'
+def distributionFolder = 'spring-postgres'
+def configFiles = [
+	'application.properties','spring-postgres.sh','spring-postgres.service'] as Set
+
+bootJar {
+	baseName = jarBaseName
+    version = jarVersion
+    exclude 'spring-postgres.sh'
 }
 
-task copy(type: Copy) {
-  into "$buildDir/libs"
-  with contentSpec
+task copyFilesToPackage(type: Copy) {
+    from('src/main/resources') {
+        include configFiles
+    }
+    from 'build/libs/'+jarBaseName+'-'+jarVersion+'.jar'
+    into 'build/'+distributionFolder
+}
+
+task zipPackage(type: Zip, dependsOn: 'copyFilesToPackage') {
+    from 'build/'+distributionFolder
+    baseName distributionFolder
+}
+
+build.dependsOn zipPackage
+zipPackage.mustRunAfter check
+
+configurations.all {
+    resolutionStrategy {
+        failOnVersionConflict()
+    }
 }
 
 

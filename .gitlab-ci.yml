@@ -29,8 +29,8 @@ build:
       public: true
       when: on_success     
       paths:
-        - build/libs/*.jar 
-        - build/libs/*.properties
+        - build/distributions/*.zip
+      
     before_script:   
         - pwd && cd $CI_BUILDS_DIR  
         - ansible-playbook -i hosts playbook/playbook.yml --syntax-check
@@ -53,7 +53,7 @@ build:
         - pwd && cd $CI_BUILDS_DIR           
         - pwd && chmod +x gradlew
         - ./gradlew clean build # build package java
-        - ./gradlew copy # running copy task configuration    
+        #- ./gradlew copy # running copy task configuration    
 
     retry:
       max: 2
@@ -149,11 +149,21 @@ deploy:
           fi
         - echo "create Dir App java"
         - |
-          if [ -d /app ]; then 
+          if [ -d /app/spring-postgres ]; then 
             echo "Directory Is exists."; 
           else 
-            mkdir -p /app;
+            mkdir -p /app/spring-postgres;
             echo "Create Directory Success...";
+          fi
+        - echo "backup dir app java"        
+        - cd /app 
+        - | 
+          if [ -e "spring-postgres_`date +%y_%m_%d`.tar.gz" ]; then 
+            echo "Yes, file exists"; 
+          else 
+            echo "Compres Proses..."; 
+            tar -cf /app/spring-postgres_`date +%y_%m_%d`.tar.gz spring-postgres; 
+            echo "compress success..."; 
           fi
         
     script: 
@@ -166,7 +176,7 @@ deploy:
             echo 'Archive failed to extract' >&2;
             rm -rf $DIR_RELEASE/agregate_service/*;
             cd $CI_BUILDS_DIR && pwd;
-            zip -r artifacts.zip build/libs && mv artifacts.zip $DIR_RELEASE/agregate_service/;
+            zip -r artifacts.zip build/spring-postgres && mv artifacts.zip $DIR_RELEASE/agregate_service/;
             unzip -B $DIR_RELEASE/agregate_service/artifacts.zip;
           echo "Archiving Package success...!";
           fi       
@@ -180,25 +190,25 @@ deploy:
             kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}');
             echo "kill service success";
           fi        
-        - echo "Preparing remove packages java..."        
-        - mv $DIR_RELEASE/agregate_service/build/libs/* /app 
+        - echo "Preparing remove packages java..."              
+        - mv $DIR_RELEASE/agregate_service/build/spring-postgres/ /app 
         - pwd        
         - echo "Make Sure Privileges user.."
         - ls -ltr /app
-        - chown -R appuser01:appuser01 /app && chmod -R 755 /app
+        - chown -R appuser01:appuser01 /app/ && chmod -R 755 /app/spring-postgres
         - echo "Preparing start service java..."
-        - su appuser01 && cd /app 
+        - su appuser01 && cd /app/spring-postgres 
         - |
-          if [ -f "builds-0.0.1-SNAPSHOT.jar" ]; then
+          if [ -f "spring-postgres-0.0.1-SNAPSHOT.jar" ]; then
             echo "File jar Found in here...";
-            unlink /app/builds.jar;
-            ln -sv /app/builds-0.0.1-SNAPSHOT.jar  /app/builds.jar;
+            unlink /app/spring-postgres/spring-postgres.jar;
+            ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;
           else
             echo "FIle is Not Found in here...!";
-            ln -sv /app/builds-0.0.1-SNAPSHOT.jar  /app/builds.jar;           
+            ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;           
           fi
         
-        - java -jar -Dspring.location.config=application.properties /app/builds.jar > /dev/null &
+        - java -jar -Dspring.location.config=application.properties /app/spring-postgres/spring-postgres.jar > /dev/null &
         - ps aux | grep $SERVICE_NAME        
         - echo "deploy Success.."
         - echo "clean up package after deploy..."
