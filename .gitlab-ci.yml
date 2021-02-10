@@ -177,7 +177,7 @@ deploy:
             echo 'All is good, archive extracted' >&2;
           else
             echo 'Archive failed to extract' >&2;
-            rm -rf $DIR_RELEASE/agregate_service/artifacts.zip;
+            rm -rf $DIR_RELEASE/agregate_service/*;
             cd $CI_BUILDS_DIR && pwd;
             zip -r artifacts.zip build/libs && mv artifacts.zip $DIR_RELEASE/agregate_service/;
             unzip $DIR_RELEASE/agregate_service/artifacts.zip 
