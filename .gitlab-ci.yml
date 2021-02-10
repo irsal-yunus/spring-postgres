@@ -180,18 +180,18 @@ deploy:
             rm -rf $DIR_RELEASE/agregate_service/artifacts.zip;
             cd $CI_BUILDS_DIR && pwd;
             zip -r artifacts.zip build/libs && mv artifacts.zip $DIR_RELEASE/agregate_service/;
+            unzip $DIR_RELEASE/agregate_service/artifacts.zip 
           echo "Archiving Package success...!";
-          fi 
-        - unzip artifacts.zip && ls -ltr libs  
+          fi         
         - echo "Checking Status Service..."  
         - |
-          if [ $(jps -l | grep "$SERVICE_NAME" | wc -l) -eq "0" ]; then
+          if [ $(jps -l | grep $SERVICE_NAME | wc -l) -eq "0" ]; then
             echo "service not running";
           else
             echo "service is running";            
           fi
-        - echo "killing Service "$SERVICE_NAME" "
-        - kill $(ps aux | grep "$SERVICE_NAME" | grep -v 'grep' | awk '{print $2}')
+        - echo "killing Service $SERVICE_NAME "
+        - kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}')
         - echo "kill service success"
         - echo "Preparing remove packages java..."
         - rm -rf app 
