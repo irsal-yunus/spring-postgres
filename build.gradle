@@ -23,7 +23,7 @@ def configFiles = [
 
 bootJar {
 	baseName = jarBaseName
-    version = jarVersion
+    // version = jarVersion
     exclude 'spring-postgres.sh'
 }
 
@@ -31,7 +31,7 @@ task copyFilesToPackage(type: Copy) {
     from('src/main/resources') {
         include configFiles
     }
-    from 'build/libs/'+jarBaseName+'-'+jarVersion+'.jar'
+    from 'build/libs/'+jarBaseName+'.jar'
     into 'build/'+distributionFolder
 }
 
@@ -52,7 +52,7 @@ configurations.all {
 
 
 group = 'com.example'
-version = '0.0.1-SNAPSHOT'
+// version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 repositories {
