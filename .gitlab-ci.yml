@@ -180,8 +180,8 @@ deploy:
             rm -rf $DIR_RELEASE/agregate_service/*;
             cd $CI_BUILDS_DIR && pwd;
             zip -r artifacts.zip build/libs && mv artifacts.zip $DIR_RELEASE/agregate_service/;
-            unzip $DIR_RELEASE/agregate_service/artifacts.zip;
-          echo "Archiving Package success...!";
+            unzip -B $DIR_RELEASE/agregate_service/artifacts.zip;
+            echo "Archiving Package success...!";
           fi         
         - echo "Checking Status Service..."  
         - |
