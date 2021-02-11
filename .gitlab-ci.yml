@@ -190,6 +190,7 @@ deploy:
             echo "service is running";  
             echo "killing Service $SERVICE_NAME";
             kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}');
+            sudo systemctl stop spring-postgres.service;
             echo "kill service success";
           fi        
         - echo "Preparing packages java..." 
@@ -228,6 +229,8 @@ deploy:
                 echo "Broken link";
                 unlink /usr/lib/systemd/system/spring-postgres.service;
                 ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+                sudo systemctl daemon-reload && sudo systemctl enable spring-postgres.service;
+                sudo systemctl restart spring-postgres.service && sudo systemctl status spring-postgres.service;
             fi
           elif [ -e /usr/lib/systemd/system/spring-postgres.service ] ; then
             echo "Not a link";
@@ -236,9 +239,7 @@ deploy:
             echo "Missing";
             unlink /usr/lib/systemd/system/spring-postgres.service;
             ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
-          fi
-        - sudo systemctl daemon-reload && sudo systemctl enable spring-postgres.service
-        - sudo systemctl start spring-postgres.service && sudo systemctl status spring-postgres.service       
+          fi              
         - sudo chown -R appuser01:appuser01 /app/spring-postgres/* && chmod -R 755 /app/spring-postgres/*
         - sudo systemctl restart spring-postgres.service && sudo systemctl status spring-postgres.service
         - ps aux | grep $SERVICE_NAME        
