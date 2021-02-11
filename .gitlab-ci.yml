@@ -192,9 +192,15 @@ deploy:
             kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}');
             echo "kill service success";
           fi        
-        - echo "Preparing remove packages java..."              
-        - mv $DIR_RELEASE/agregate_service/spring-postgres /app 
-        - pwd        
+        - echo "Preparing packages java..." 
+        - |
+          if [ -d /app/spring-postgres ]; then
+            echo "Directoy is exists";
+          else
+            echo "Directory Not Availaible";
+            mv $DIR_RELEASE/agregate_service/spring-postgres /app/;
+            pwd;
+          fi              
         - echo "Make Sure Privileges user.."
         - ls -ltr /app
         - chown -R appuser01:appuser01 /app/ && chmod -R 755 /app/spring-postgres/
