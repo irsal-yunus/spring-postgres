@@ -1,0 +1,68 @@
+buildscript {
+	ext {
+		springBootVersion = '2.1.1.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+def jarBaseName= 'spring-postgres'
+def jarVersion = '0.0.1'
+def distributionFolder = 'spring-postgres'
+def configFiles = [
+	'application.properties','spring-postgres.sh','spring-postgres.service'] as Set
+
+bootJar {
+	baseName = jarBaseName
+    // version = jarVersion
+    exclude 'spring-postgres.sh'
+}
+
+task copyFilesToPackage(type: Copy) {
+    from('src/main/resources') {
+        include configFiles
+    }
+    from 'build/libs/'+jarBaseName+'.jar'
+    into 'build/'+distributionFolder
+}
+
+task zipPackage(type: Zip, dependsOn: 'copyFilesToPackage') {
+    from 'build/'+distributionFolder
+    baseName distributionFolder
+}
+
+build.dependsOn zipPackage
+zipPackage.mustRunAfter check
+
+configurations.all {
+    resolutionStrategy {
+        failOnVersionConflict()
+    }
+}
+
+
+
+group = 'com.example'
+// version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+	implementation('org.springframework.boot:spring-boot-starter-web')
+	implementation('org.postgresql:postgresql')
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+}

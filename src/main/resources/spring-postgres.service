@@ -1,0 +1,13 @@
+[Unit]
+Description=Aplikasi Spring Postgres
+After=syslog.target
+
+[Service]
+Type =forking
+User=appuser01
+SuccessExitStatus=143 
+ExecStart=/app/spring-postgres/spring-postgres.sh 
+
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,262 @@
+variables:
+  GIT_CLONE_PATH: $CI_BUILDS_DIR
+  GIT_SUBMODULE_STRATEGY: recursive
+
+before_script:
+  - git submodule sync --recursive
+  - git submodule update --init --recursive
+  - export GRADLE_USER_HOME=`pwd`/.gradle
+
+cache:
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+
+stages:
+    - build
+    - test  
+    - archive
+    - deploy     
+
+build:
+    stage: build
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1
+    artifacts: 
+      public: true
+      when: on_success     
+      paths:
+        #- build/distributions/*.zip
+        - build/libs
+        - build/spring-postgres
+      
+    before_script:   
+        - pwd && cd $CI_BUILDS_DIR  
+        - ansible-playbook -i hosts playbook/playbook.yml --syntax-check
+        - ansible-playbook -i hosts playbook/playbook.yml      
+
+    rules:
+      - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH'
+      - if: '$CI_COMMIT_BRANCH == "master"'
+        when: on_success          
+        allow_failure: true
+      - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^src/ && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
+        when: always
+      - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME =~ /^src/'
+        when: manual
+        allow_failure: true
+      - if: '$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME'      
+      - if: '$CI_COMMIT_TAG != ""'       
+
+    script: 
+        - pwd && cd $CI_BUILDS_DIR           
+        - pwd && chmod +x gradlew
+        - ./gradlew clean build # build package java
+        #- ./gradlew copy # running copy task configuration    
+
+    retry:
+      max: 2
+      when: always
+    allow_failure: true        
+    after_script:                 
+        - echo "Build development complete"    
+
+test:
+    stage: test
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1
+    script:
+        - echo "Skipping..." #./gradlew check       
+
+    only:
+        - master        
+
+    allow_failure: true
+
+    retry:
+      max: 2
+      when: 
+       - runner_system_failure
+       - stuck_or_timeout_failure
+    allow_failure: true
+    when: delayed
+    start_in: 1 minutes
+    after_script:
+        - echo "Test development complete..."
+
+archive:
+    stage: archive
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1    
+    before_script:
+        - echo "Skipping..."   
+        - ls -ltr $DIR_RELEASE          
+      
+    script:
+        - | 
+          if [ -d $DIR_RELEASE/agregate_service ]; then 
+            echo "Directory Is exists."; 
+          else 
+            mkdir -p $DIR_RELEASE/agregate_service;
+            echo "Create Directory Success...";
+          fi
+        - | 
+          if [ -f "*.zip" ]; then 
+            echo "This package already downloaded..."; 
+            unzip *.zip -d $DIR_RELEASE/agregate_service/; 
+          else 
+            echo "Preparing Archive package...";
+            cd $CI_BUILDS_DIR && pwd               
+            curl -L --progress-bar --header "PRIVATE-TOKEN: 9SRJZxic2k7ex57649sp" "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=build" -o $DIR_RELEASE/agregate_service/artifacts.zip 2>&1;
+            chmod -Rv 775 $DIR_RELEASE/agregate_service/artifacts.zip 
+            echo "Archiving Package success...!";
+          fi   
+    only:
+        - master         
+
+    retry:
+      max: 2
+      when: always         
+    allow_failure: true
+    when: delayed
+    start_in: 1 minutes
+    after_script:
+        - echo "Archive development complete..."
+
+
+deploy:
+    stage: deploy
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1
+    before_script:
+        - echo "create Dir backup java"
+        - |
+          if [ -d /backup/agregate_service ]; then 
+            echo "Directory Is exists."; 
+          else 
+            mkdir -p /backup/agregate_service;
+            echo "Create Directory backup Success...";
+          fi
+        - echo "create Dir App java"
+        - |
+          if [ -d /app/spring-postgres ]; then 
+            echo "Directory Is exists."; 
+          else 
+            mkdir -p /app/spring-postgres;
+            echo "Create Directory Success...";
+          fi
+        - echo "backup dir app java"        
+        - cd /app 
+        - | 
+          if [ -e "spring-postgres_`date +%y_%m_%d`.tar.gz" ]; then 
+            echo "Yes, file exists"; 
+          else 
+            echo "Compres Proses..."; 
+            tar -cf /app/spring-postgres_`date +%y_%m_%d`.tar.gz spring-postgres; 
+            echo "compress success..."; 
+          fi
+        
+    script: 
+        - cd $DIR_RELEASE/agregate_service && pwd
+        - echo "Extract Package...."
+        - |
+          if unzip *.zip 2>/dev/null; then
+            echo 'All is good, archive extracted' >&2;
+          else
+            echo 'Archive failed to extract' >&2;
+            rm -rf $DIR_RELEASE/agregate_service/*;
+            cd $CI_BUILDS_DIR/build && pwd;
+            zip -r artifacts.zip spring-postgres && mv artifacts.zip $DIR_RELEASE/agregate_service/;
+            unzip -B $DIR_RELEASE/agregate_service/artifacts.zip;
+          echo "Archiving Package success...!";
+          fi       
+        - echo "Checking Status Service..."  
+        - |
+          if [ $(jps -l | grep $SERVICE_NAME | wc -l) -eq "0" ]; then
+            echo "service not running";
+          else
+            echo "service is running";  
+            echo "killing Service $SERVICE_NAME";
+            kill $(ps aux | grep $SERVICE_NAME | grep -v 'grep' | awk '{print $2}');
+            echo "kill service success";
+          fi        
+        - echo "Preparing packages java..." 
+        - |
+          if [ -d /app/spring-postgres ]; then
+            echo "Directoy is exists";
+          else
+            echo "Directory Not Availaible";
+            mv $DIR_RELEASE/agregate_service/spring-postgres /app/;
+            pwd;
+          fi              
+        - echo "Make Sure Privileges user.."
+        - ls -ltr /app
+        - chown -R appuser01:appuser01 /app/ && chmod -R 755 /app/spring-postgres/
+        - echo "Preparing start service java..."
+        - su appuser01 && cd /app/spring-postgres 
+        - |
+          if [ -f "spring-postgres.jar" ]; then
+            echo "File jar Found in here...";
+            # unlink /app/spring-postgres/spring-postgres.jar;
+            # ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;
+          else
+            echo "FIle is Not Found in here...!";
+            # ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;  
+            cp -r  $CI_BUILDS_DIR/build/libs/*.jar /app/spring-postgres/        
+          fi
+
+        - echo "Preparing Create systemd service Java"
+        - |
+          if [ -L /usr/lib/systemd/system/spring-postgres.service ] ; then
+            if [ -e /usr/lib/systemd/system/spring-postgres.service ] ; then
+                echo "Good link";
+                unlink /usr/lib/systemd/system/spring-postgres.service;
+                ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+            else
+                echo "Broken link";
+                unlink /usr/lib/systemd/system/spring-postgres.service;
+                ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+            fi
+          elif [ -e /usr/lib/systemd/system/spring-postgres.service ] ; then
+            echo "Not a link";
+            ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+          else
+            echo "Missing";
+            unlink /usr/lib/systemd/system/spring-postgres.service;
+            ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+          fi
+        - sudo systemctl daemon-reload && sudo systemctl enable spring-postgres.service
+        - sudo systemctl start spring-postgres.service && sudo systemctl status spring-postgres.service       
+        - sudo chown -R appuser01:appuser01 /app/spring-postgres/* && chmod -R 755 /app/spring-postgres/*
+        - sudo systemctl restart spring-postgres.service && sudo systemctl status spring-postgres.service
+        - ps aux | grep $SERVICE_NAME        
+        - echo "deploy Success.."
+        - echo "clean up package after deploy..."
+        - sudo ls -ltr $DIR_RELEASE/agregate_service/
+        - sudo rm -rf $DIR_RELEASE/agregate_service/* && sudo ls -ltr $DIR_RELEASE/agregate_service/
+        - echo "processing clean up success..."
+
+    only:
+        - master        
+
+    retry:
+      max: 2
+      when: always      
+
+    allow_failure: true
+    when: delayed
+    start_in: 1 minutes
+    after_script:
+        - echo "Deploy development complete..."

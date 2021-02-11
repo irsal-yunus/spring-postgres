@@ -1,0 +1,35 @@
+- name: Setup Configuration Development With Ansible
+  hosts: localhost
+  connection: local
+  gather_facts: false 
+
+  tasks:
+    - name: Replace a Line applications.properties other string
+      lineinfile:
+        path: /root/builds/src/main/resources/application.properties
+        # The String to Search 
+        regexp: "spring.datasource.url=jdbc:postgresql://localhost:5432/postgres"
+        # The String to Replace
+        line: "spring.datasource.url=jdbc:postgresql://188.166.218.227:5432/postgres"		 
+        state: present
+        backup: yes
+
+    - name: Display files content
+      debug:
+        msg: "{{ lookup('file', '/root/builds/src/main/resources/application.properties') }}"
+
+    - name: Replace a Line applications.properties other string
+      lineinfile:
+        path: /root/builds/src/main/resources/application.properties
+        # The String to Search 
+        regexp: "spring.datasource.password=HelpDesk@123"
+        # The String to Replace
+        line: "spring.datasource.password=dbpassword123"		 
+        state: present
+        backup: yes
+
+    - name: Display files content
+      debug:
+        msg: "{{ lookup('file', '/root/builds/src/main/resources/application.properties') }}"
+
+  
