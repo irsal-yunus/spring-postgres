@@ -1,9 +1,8 @@
 #!/bin/sh
 
-java_bin=$JAVA_HOME
+java_bin=$JAVA_HOME/bin/java
 java_min=256M
 java_max=512M
-java_perm=256m
 APP_NAME=spring-postgres
 WORKINGDIR=/app/$APP_NAME
 PIDDIR=$WORKINGDIR

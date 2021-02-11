@@ -237,9 +237,10 @@ deploy:
             unlink /usr/lib/systemd/system/spring-postgres.service;
             ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
           fi
-        - sudo systemctl daemon-reload
+        - sudo systemctl daemon-reload && sudo systemctl enable spring-postgres.service
         - sudo systemctl start spring-postgres.service && sudo systemctl status spring-postgres.service       
-        #- java -jar -Dspring.location.config=application.properties /app/spring-postgres/spring-postgres.jar > /dev/null &
+        - sudo chown -R appuser01:appuser01 /app/spring-postgres/* && chmod -R 755 /app/spring-postgres/*
+        - sudo systemctl restart spring-postgres.service && sudo systemctl status spring-postgres.service
         - ps aux | grep $SERVICE_NAME        
         - echo "deploy Success.."
         - echo "clean up package after deploy..."
