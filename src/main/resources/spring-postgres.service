@@ -3,7 +3,7 @@ Description=Aplikasi Spring Postgres
 After=syslog.target
 
 [Service]
-User=root
+User=appuser01
 ExecStart=/app/spring-postgres/spring-postgres.jar
 SuccessExitStatus=143
 

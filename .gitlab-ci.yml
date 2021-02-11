@@ -29,7 +29,8 @@ build:
       public: true
       when: on_success     
       paths:
-        - build/distributions/*.zip
+        #- build/distributions/*.zip
+        - build/libs
         - build/spring-postgres
       
     before_script:   
@@ -176,8 +177,8 @@ deploy:
           else
             echo 'Archive failed to extract' >&2;
             rm -rf $DIR_RELEASE/agregate_service/*;
-            cd $CI_BUILDS_DIR && pwd;
-            zip -r artifacts.zip builds/build/spring-postgres && mv artifacts.zip $DIR_RELEASE/agregate_service/;
+            cd $CI_BUILDS_DIR/build && pwd;
+            zip -r artifacts.zip spring-postgres && mv artifacts.zip $DIR_RELEASE/agregate_service/;
             unzip -B $DIR_RELEASE/agregate_service/artifacts.zip;
           echo "Archiving Package success...!";
           fi       
@@ -192,24 +193,47 @@ deploy:
             echo "kill service success";
           fi        
         - echo "Preparing remove packages java..."              
-        - mv $DIR_RELEASE/agregate_service/build/spring-postgres /app 
+        - mv $DIR_RELEASE/agregate_service/spring-postgres /app 
         - pwd        
         - echo "Make Sure Privileges user.."
         - ls -ltr /app
-        - chown -R appuser01:appuser01 /app/ && chmod -R 755 /app/spring-postgres
+        - chown -R appuser01:appuser01 /app/ && chmod -R 755 /app/spring-postgres/
         - echo "Preparing start service java..."
         - su appuser01 && cd /app/spring-postgres 
         - |
-          if [ -f "spring-postgres-0.0.1-SNAPSHOT.jar" ]; then
+          if [ -f "spring-postgres.jar" ]; then
             echo "File jar Found in here...";
-            unlink /app/spring-postgres/spring-postgres.jar;
-            ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;
+            # unlink /app/spring-postgres/spring-postgres.jar;
+            # ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;
           else
             echo "FIle is Not Found in here...!";
-            ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;           
+            # ln -sv /app/spring-postgres/spring-postgres-0.0.1-SNAPSHOT.jar  /app/spring-postgres/spring-postgres.jar;  
+            cp -r  $CI_BUILDS_DIR/build/libs/*.jar /app/spring-postgres/        
           fi
-        
-        - java -jar -Dspring.location.config=application.properties /app/spring-postgres/spring-postgres.jar > /dev/null &
+
+        - echo "Preparing Create systemd service Java"
+        - |
+          if [ -L /usr/lib/systemd/system/spring-postgres.service ] ; then
+            if [ -e /usr/lib/systemd/system/spring-postgres.service ] ; then
+                echo "Good link";
+                unlink /usr/lib/systemd/system/spring-postgres.service;
+                ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+            else
+                echo "Broken link";
+                unlink /usr/lib/systemd/system/spring-postgres.service;
+                ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+            fi
+          elif [ -e /usr/lib/systemd/system/spring-postgres.service ] ; then
+            echo "Not a link";
+            ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+          else
+            echo "Missing";
+            unlink /usr/lib/systemd/system/spring-postgres.service;
+            ln -sv /app/spring-postgres/spring-postgres.service /usr/lib/systemd/system/spring-postgres.service;
+          fi
+        - sudo systemctl daemon-reload
+        - sudo systemctl start spring-postgres.service && sudo systemctl status spring-postgres.service       
+        #- java -jar -Dspring.location.config=application.properties /app/spring-postgres/spring-postgres.jar > /dev/null &
         - ps aux | grep $SERVICE_NAME        
         - echo "deploy Success.."
         - echo "clean up package after deploy..."
