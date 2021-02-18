@@ -276,5 +276,5 @@ deploy:
 cleanup_job:
     stage: cleanup
     script:
-    - cleanup after jobs
+    - clean after jobs
     when: always
