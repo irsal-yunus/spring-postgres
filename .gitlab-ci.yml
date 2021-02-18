@@ -2,11 +2,6 @@ variables:
   GIT_CLONE_PATH: $CI_BUILDS_DIR
   GIT_SUBMODULE_STRATEGY: recursive
 
-# before_script:
-#   - git submodule sync --recursive
-#   - git submodule update --init --recursive
-#   - export GRADLE_USER_HOME=`pwd`/.gradle
-
 cache:
   paths:
     - .gradle/wrapper
@@ -15,6 +10,8 @@ cache:
 stages:
     - build
     - cleanup_build  
+    - test
+    - archive
     - deploy
     - cleanup     
 
@@ -79,71 +76,71 @@ cleanup_build_job:
     when: on_failure
    
 
-# test:
-#     stage: test
-#     environment:
-#         name: development
-#         url: http://188.166.214.118:9090
-#     tags:
-#         - s1
-#     script:
-#         - echo "Skipping..." #./gradlew check       
+test:
+    stage: test
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1
+    script:
+        - echo "Skipping..." #./gradlew check       
 
-#     only:
-#         - master        
+    only:
+        - master        
 
-#     allow_failure: true
+    allow_failure: true
 
-#     retry:
-#       max: 2
-#       when: 
-#        - runner_system_failure
-#        - stuck_or_timeout_failure
-#     allow_failure: true
-#     when: on_success    
-#     after_script:
-#         - echo "Test development complete..."
+    retry:
+      max: 2
+      when: 
+       - runner_system_failure
+       - stuck_or_timeout_failure
+    allow_failure: true
+    when: on_success    
+    after_script:
+        - echo "Test development complete..."
 
-# archive:
-#     stage: archive
-#     environment:
-#         name: development
-#         url: http://188.166.214.118:9090
-#     tags:
-#         - s1    
-#     before_script:
-#         - echo "Skipping..."   
-#         - ls -ltr $DIR_RELEASE          
+archive:
+    stage: archive
+    environment:
+        name: development
+        url: http://188.166.214.118:9090
+    tags:
+        - s1    
+    before_script:
+        - echo "Skipping..."   
+        - ls -ltr $DIR_RELEASE          
       
-#     script:
-#         - | 
-#           if [ -d $DIR_RELEASE/agregate_service ]; then 
-#             echo "Directory Is exists."; 
-#           else 
-#             mkdir -p $DIR_RELEASE/agregate_service;
-#             echo "Create Directory Success...";
-#           fi
-#         - | 
-#           if [ -f "*.zip" ]; then 
-#             echo "This package already downloaded..."; 
-#             unzip *.zip -d $DIR_RELEASE/agregate_service/; 
-#           else 
-#             echo "Preparing Archive package...";
-#             cd $CI_BUILDS_DIR && pwd               
-#             curl -L --progress-bar --header "PRIVATE-TOKEN: 9SRJZxic2k7ex57649sp" "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=build" -o $DIR_RELEASE/agregate_service/artifacts.zip 2>&1;
-#             chmod -Rv 775 $DIR_RELEASE/agregate_service/artifacts.zip 
-#             echo "Archiving Package success...!";
-#           fi   
-#     only:
-#         - master         
+    script:
+        - | 
+          if [ -d $DIR_RELEASE/agregate_service ]; then 
+            echo "Directory Is exists."; 
+          else 
+            mkdir -p $DIR_RELEASE/agregate_service;
+            echo "Create Directory Success...";
+          fi
+        - | 
+          if [ -f "*.zip" ]; then 
+            echo "This package already downloaded..."; 
+            unzip *.zip -d $DIR_RELEASE/agregate_service/; 
+          else 
+            echo "Preparing Archive package...";
+            cd $CI_BUILDS_DIR && pwd               
+            curl -L --progress-bar --header "PRIVATE-TOKEN: 9SRJZxic2k7ex57649sp" "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=build" -o $DIR_RELEASE/agregate_service/artifacts.zip 2>&1;
+            chmod -Rv 775 $DIR_RELEASE/agregate_service/artifacts.zip 
+            echo "Archiving Package success...!";
+          fi   
+    only:
+        - master         
 
-#     retry:
-#       max: 2
-#       when: always         
-#     allow_failure: true
-#     when: on_success    
-#     after_script:
-#         - echo "Archive development complete..."
+    retry:
+      max: 2
+      when: always         
+    allow_failure: true
+    when: on_success    
+    after_script:
+        - echo "Archive development complete..."
 
 
 deploy:
