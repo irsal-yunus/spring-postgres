@@ -35,6 +35,7 @@ build:
     before_script:   
         - git submodule sync --recursive
         - git submodule update --init --recursive
+        - git pull
         - export GRADLE_USER_HOME=`pwd`/.gradle
         - pwd && cd $CI_BUILDS_DIR  
         - ansible-playbook -i hosts playbook/playbook.yml --syntax-check
@@ -74,7 +75,7 @@ build:
 cleanup_build_job:
     stage: cleanup_build
     script:
-    - cleanup build when failed
+        - cleanup build when failed
     when: on_failure
    
 
@@ -275,6 +276,7 @@ deploy:
 
 cleanup_job:
     stage: cleanup
-    script:
-    - clean after jobs
+    script:        
+        - rm -rf $CI_BUILDS_DIR/*
+        - exit 0
     when: always
