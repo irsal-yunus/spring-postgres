@@ -52,7 +52,8 @@ public class CustomerController {
 			customerUI.add(new CustomerUI(customer.getFirstName(),customer.getLastName()));
 		}
 		customerUI.add(new CustomerUI("Budi","Wijaya"));
-		return customerUI;
+		 return customerUI;
+		//return null;
 	}
 	
 	@RequestMapping("/search/{id}")
