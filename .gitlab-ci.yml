@@ -35,7 +35,7 @@ build:
     before_script:   
         - git submodule sync --recursive
         - git submodule update --init --recursive
-        - git pull
+        - git pull origin $CI_COMMIT_BRANCH
         - export GRADLE_USER_HOME=`pwd`/.gradle
         - pwd && cd $CI_BUILDS_DIR  
         - ansible-playbook -i hosts playbook/playbook.yml --syntax-check
