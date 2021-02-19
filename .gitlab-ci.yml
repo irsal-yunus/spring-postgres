@@ -128,7 +128,7 @@ archive:
           else 
             echo "Preparing Archive package...";
             cd $CI_BUILDS_DIR && pwd               
-            curl -L --progress-bar --header "PRIVATE-TOKEN: 9SRJZxic2k7ex57649sp" "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/master/download?job=build" -o $DIR_RELEASE/agregate_service/artifacts.zip 2>&1;
+            curl -L --progress-bar --header "PRIVATE-TOKEN: 9SRJZxic2k7ex57649sp" "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/jobs/artifacts/CI_COMMIT_BRANCH:latest/download?job=build" -o $DIR_RELEASE/agregate_service/artifacts.zip 2>&1;
             chmod -Rv 775 $DIR_RELEASE/agregate_service/artifacts.zip 
             echo "Archiving Package success...!";
           fi   
