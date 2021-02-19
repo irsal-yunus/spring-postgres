@@ -183,7 +183,7 @@ deploy:
     script: 
         - apt install sshpass
         - export SSHPASS=$USER_PASS
-        - sshpass -e ssh root@"$s1"
+        - sshpass -e ssh appuser01@"$s1"
         - cd $DIR_RELEASE/agregate_service && pwd
         - echo "Extract Package...."
         - |
