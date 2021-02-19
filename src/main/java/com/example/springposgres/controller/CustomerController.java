@@ -51,7 +51,7 @@ public class CustomerController {
 		for (Customer customer : customers) {
 			customerUI.add(new CustomerUI(customer.getFirstName(),customer.getLastName()));
 		}
-		customerUI.add(new CustomerUI("Doni","Wijaya"));
+		customerUI.add(new CustomerUI("Budi","Wijaya"));
 		 return customerUI;
 		//return null;
 	}
