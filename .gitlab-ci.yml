@@ -124,7 +124,8 @@ archive:
         - | 
           if [ -f "*.zip" ]; then 
             echo "This package already downloaded..."; 
-            unzip *.zip -d $DIR_RELEASE/agregate_service/; 
+            #unzip *.zip -d $DIR_RELEASE/agregate_service/; 
+            rm -rf $DIR_RELEASE/agregate_service/*.zip;
           else 
             echo "Preparing Archive package...";
             cd $CI_BUILDS_DIR && pwd               
