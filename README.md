@@ -21,31 +21,20 @@ In this project, We will show how Spring boot and spring data jpa can be used to
 http://localhost:9090/bulkcreate
 
 2. POST call to insert one customer based on the JSON data passed.
-
-http://localhost:9090/create
-
-### JSON data
-```
-{
-	"firstName": "Sumit",
-	"lastName": "Khan"
-}
-```
+curl -v -X POST localhost:9090/create -H 'Content-Type:application/json' -d '{"firstName": "Sumit", "lastName": "Khan"}'
 
 2. GET call to retrive all customers.
-
-http://localhost:9090/findall
+curl -v -X GET localhost:9090/findall
 
 3. GET call to search customer by id.
-http://localhost:9090/search/{id}
+curl -v -X GET http://localhost:9090/search/{id}
 
 4. GET call to search customer by first name.
-http://localhost:9090/searchbyfirstname/{firstname}
+curl -v -X GET http://localhost:9090/searchbyfirstname/{firstname}
 
 
-
-For detail explanation of this project check this blog -https://www.rajeshbhojwani.co.in/2019/01/spring-boot-and-postgresql.html
-
+link referensi :
+https://spring.io/guides/tutorials/rest/
 
 
 
