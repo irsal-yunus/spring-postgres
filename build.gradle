@@ -19,7 +19,7 @@ def jarBaseName= 'spring-postgres'
 def jarVersion = '0.0.1'
 def distributionFolder = 'spring-postgres'
 def configFiles = [
-	'application.properties','spring-postgres.sh','spring-postgres.service'] as Set
+	'application.properties','spring-postgres.sh','spring-postgres.service','logback.xml'] as Set
 
 bootJar {
 	baseName = jarBaseName
@@ -38,6 +38,16 @@ task copyFilesToPackage(type: Copy) {
 task zipPackage(type: Zip, dependsOn: 'copyFilesToPackage') {
     from 'build/'+distributionFolder
     baseName distributionFolder
+}
+
+task runJar(dependsOn:jar) << {
+  javaexec { 
+    main="-jar";
+    args = [
+            "E:/project-git/java/springboot-postgresql/build/libs/spring-postgres.jar",
+            "-c"            
+           ]
+  } 
 }
 
 build.dependsOn zipPackage
@@ -63,6 +73,12 @@ repositories {
 dependencies {
 	implementation('org.springframework.boot:spring-boot-starter-data-jpa')
 	implementation('org.springframework.boot:spring-boot-starter-web')
-	implementation('org.postgresql:postgresql')
+	implementation('org.postgresql:postgresql')	
+	// Logging dependencies
+	implementation('org.springframework.boot:spring-boot-starter-log4j2')
+	compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile 'ch.qos.logback:logback-core:1.2.3'
+    compile 'org.slf4j:slf4j-api:1.7.25'
+  // end logging dependencies
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 }

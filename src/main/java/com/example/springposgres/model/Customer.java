@@ -48,4 +48,9 @@ public class Customer implements Serializable {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
+
+	public void setId(Long id2) {
+	}
+	public void findById(Long id2) {		
+	}
 }
