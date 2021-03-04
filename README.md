@@ -32,6 +32,10 @@ curl -v -X GET http://localhost:9090/search/{id}
 4. GET call to search customer by first name.
 curl -v -X GET http://localhost:9090/searchbyfirstname/{firstname}
 
+# running using docker :
+- make sure name images and user based environment to use
+docker-compose up
+
 
 link referensi :
 https://spring.io/guides/tutorials/rest/
